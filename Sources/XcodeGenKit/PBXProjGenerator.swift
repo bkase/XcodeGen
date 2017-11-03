@@ -29,6 +29,7 @@ public class PBXProjGenerator {
     var topLevelGroups: [PBXGroup] = []
     var carthageFrameworksByPlatform: [String: Set<String>] = [:]
     var frameworkFiles: [String] = []
+    var bundleFiles: [Path: SourceFile] = [:]
 
     // TODO: remove when xcproj has performant object caching
     var objects: [String: PBXObject] = [:]
@@ -489,3 +490,4 @@ public class PBXProjGenerator {
         return frameworks
     }
 }
+
