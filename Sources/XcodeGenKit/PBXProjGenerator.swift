@@ -26,6 +26,7 @@ public class PBXProjGenerator {
     var targetNativeReferences: [String: String] = [:]
     var targetBuildFiles: [String: PBXBuildFile] = [:]
     var targetFileReferences: [String: String] = [:]
+    // TODO: This topLevelGroups-field is a source of problems, can we refactor it away somehow
     var topLevelGroups: [PBXGroup] = []
     var carthageFrameworksByPlatform: [String: Set<String>] = [:]
     var frameworkFiles: [String] = []
