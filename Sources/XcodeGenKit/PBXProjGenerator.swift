@@ -26,6 +26,7 @@ public class PBXProjGenerator {
     var targetNativeReferences: [String: String] = [:]
     var targetBuildFiles: [String: PBXBuildFile] = [:]
     var targetFileReferences: [String: String] = [:]
+    // TODO: This topLevelGroups-field is a source of problems, can we refactor it away somehow
     var topLevelGroups: [PBXGroup] = []
     var carthageFrameworksByPlatform: [String: Set<String>] = [:]
     var frameworkFiles: [String] = []
@@ -502,11 +503,12 @@ public class PBXProjGenerator {
         return try sources.flatMap{ try getSources(sourceMetadata: $0, path: spec.basePath + $0.path).sourceFiles }
     }
 
-    func getSingleGroup(path: Path, mergingChildren children: [String], depth: Int = 0) -> PBXGroup {
+    func getSingleGroup(path: Path, mergingChildren children: [String], depth: Int = 0) -> (group: PBXGroup, didHitCache: Bool) {
         let group: PBXGroup
         if let cachedGroup = groupsByPath[path] {
             cachedGroup.children += children
             group = cachedGroup
+            return (group: group, didHitCache: true)
         } else {
             group = PBXGroup(
                 reference: generateUUID(PBXGroup.self, path.lastComponent),
@@ -519,31 +521,29 @@ public class PBXProjGenerator {
             )
             addObject(group)
             groupsByPath[path] = group
-            
-            if depth == 0 {
-                topLevelGroups.append(group)
-            }
+            return (group: group, didHitCache: false)
         }
-        return group
     }
 
     // Add groups for all parents recursively
     // ex: path/foo/bar/baz/Hello.swift -> path:[foo:[bar:[baz:[Hello.swift]]]]
-    func getGroups(path: Path, group: PBXGroup) -> PBXGroup {
+    func getGroups(path: Path, group: PBXGroup, didHitCache: Bool = false) -> (group: PBXGroup, didHitCache: Bool) {
         // verify path is a subpath of spec.basePath
         guard Path(components: zip(path.components, spec.basePath.components).map{ $0.0 }) == spec.basePath else {
-            return group
+            return (group: group, didHitCache: didHitCache)
         }
 
         // base case
         if path == spec.basePath {
-            return group
+            return (group: group, didHitCache: didHitCache)
         }
 
+        let (singleGroup, singleHitCache) = getSingleGroup(path: path, mergingChildren: [group.reference])
         // recursive case
         return getGroups(
             path: path.parent(),
-            group: getSingleGroup(path: path, mergingChildren: [group.reference])
+            group: singleGroup,
+            didHitCache: didHitCache || singleHitCache
         )
     }
 
@@ -583,14 +583,22 @@ public class PBXProjGenerator {
 
     /// Return the top level group for a given path
     func getGroup(path: Path, mergingChildren children: [String], depth: Int = 0) -> PBXGroup {
+        let hitCache: Bool
+        let group: PBXGroup
         if spec.options.createIntermediateGroups {
-            return getGroups(
+            let (firstGroup, firstHitCache) = getSingleGroup(path: path, mergingChildren: children, depth: depth)
+            (group, hitCache) = getGroups(
                 path: path.parent(),
-                group: getSingleGroup(path: path, mergingChildren: children, depth: depth)
+                group: firstGroup,
+                didHitCache: firstHitCache
             )
         } else {
-            return getSingleGroup(path: path, mergingChildren: children, depth: depth)
+            (group, hitCache) = getSingleGroup(path: path, mergingChildren: children, depth: depth)
         }
+        if depth == 0 && !hitCache {
+            topLevelGroups.append(group)
+        }
+        return group
     }
 
     func getSources(sourceMetadata source: Source, path: Path, depth: Int = 0) throws -> (sourceFiles: [SourceFile], groups: [PBXGroup]) {
@@ -672,16 +680,7 @@ public class PBXProjGenerator {
             }
         }
 
-        let group: PBXGroup
-        if spec.options.createIntermediateGroups {
-            group = getGroups(
-                path: path.parent(),
-                group: getSingleGroup(path: path, mergingChildren: groupChildren, depth: depth)
-            )
-        } else {
-            group = getSingleGroup(path: path, mergingChildren: groupChildren, depth: depth)
-        }
-
+        let group = getGroup(path: path, mergingChildren: groupChildren, depth: depth)
         groups.insert(group, at: 0)
         return (allSourceFiles, groups)
     }
