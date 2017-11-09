@@ -15,7 +15,8 @@ let package = Package(
         .package(url: "https://github.com/yonaskolb/JSONUtilities.git", from: "3.3.0"),
         .package(url: "https://github.com/kylef/Spectre.git", from: "0.7.0"),
         .package(url: "https://github.com/onevcat/Rainbow.git", from: "2.1.0"),
-        .package(url: "https://github.com/rahul-malik/xcproj.git", .revision("9de1516d0ed2e20bfc1523c54170fe92487bf8ae")),
+        .package(url: "https://github.com/rahul-malik/xcproj.git",
+            .revision("1c06086610e47d0ec888fc817091ee5e92ae9803")),
     ],
     targets: [
         .target(name: "XcodeGen", dependencies: [
