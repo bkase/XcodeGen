@@ -34,11 +34,11 @@ func fixtureTests() {
             guard let project = project else { return }
 
             func getFileReferences(_ path: String) -> [PBXFileReference] {
-                return project.pbxproj.fileReferences.filter { $0.path == path }
+                return project.pbxproj.fileReferences.filter { $0.path == path }.values
             }
 
             func getVariableGroups(_ name: String?) -> [PBXVariantGroup] {
-                return project.pbxproj.variantGroups.filter { $0.name == name }
+                return project.pbxproj.variantGroups.filter { $0.name == name }.values
             }
 
             let resourceName = "LocalizedStoryboard.storyboard"
