@@ -519,10 +519,6 @@ public class PBXProjGenerator {
             )
             addObject(group)
             groupsByPath[path] = group
-            
-            if depth == 0 {
-                topLevelGroups.append(group)
-            }
         }
         return group
     }
@@ -636,16 +632,40 @@ public class PBXProjGenerator {
         }
 
         let group: PBXGroup
+        let groupPath: Path
         if spec.options.createIntermediateGroups {
+            groupPath = path.parent()
             group = getIntermediateGroups(
                 path: path.parent(),
                 group: getSingleGroup(path: path, mergingChildren: groupChildren, depth: depth)
             )
         } else {
+            groupPath = path
             group = getSingleGroup(path: path, mergingChildren: groupChildren, depth: depth)
+        }
+        
+        if depth == 0 && (
+            // check for recursive containment in the case
+            (spec.options.createIntermediateGroups &&
+                !isRecursivelyContained(path: groupPath, inside: topLevelGroups)) ||
+            // but we don't need to do this if we're using fileGroups
+            !spec.options.createIntermediateGroups
+        ) {
+            topLevelGroups.append(group)
         }
 
         groups.insert(group, at: 0)
         return (allSourceFiles, groups)
+    }
+    
+    func isRecursivelyContained<S: Sequence>(path: Path, inside sequence: S) -> Bool where S.Element == PBXGroup {
+        print("Trying \(path) inside \(sequence.map{ $0.path })")
+        if let group = groupsByPath[path] {
+            print("Inside with group \(group), \(path)")
+            return sequence.contains(group) || isRecursivelyContained(path: path.parent(), inside: sequence)
+        } else {
+            print("NOT contains with \(path)")
+            return false
+        }
     }
 }

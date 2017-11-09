@@ -322,6 +322,28 @@ func projectGeneratorTests() {
                 try project.expectFile(paths: ["Sources/A/B", "b.swift"], names: ["B", "b.swift"], buildPhase: .sources)
                 try project.expectFile(paths: ["Sources/A/B", "c.jpg"], names: ["B", "c.jpg"], buildPhase: .resources)
             }
+            
+            $0.it("creates intermediate groups properly") {
+                spec.options.createIntermediateGroups = true
+                
+                let directories = """
+                Sources:
+                  A:
+                    - B:
+                      - b.swift
+                """
+                try createDirectories(directories)
+                
+                target.sources = [
+                    "Sources/A/B/b.swift",
+                ]
+                spec.targets = [target]
+                
+                let project = try getPbxProj(spec)
+                try project.expectFile(paths: ["Sources/A/B", "b.swift"], names: ["B", "b.swift"], buildPhase: .sources)
+                
+                spec.options.createIntermediateGroups = false
+            }
 
             $0.it("generates shared sources") {
                 let directories = """
