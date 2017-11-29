@@ -13,6 +13,11 @@ public struct Target {
     public var postbuildScripts: [BuildScript]
     public var configFiles: [String: String]
     public var scheme: TargetScheme?
+    
+    public var buildToolPath: String?
+    public var buildArgumentsString: String?
+    public var passBuildSettingsInEnvironment: Bool
+    public var buildWorkingDirectory: String?
 
     public var filename: String {
         var name = self.name
@@ -22,7 +27,7 @@ public struct Target {
         return name
     }
 
-    public init(name: String, type: PBXProductType, platform: Platform, settings: Settings = .empty, configFiles: [String: String] = [:], sources: [TargetSource] = [], dependencies: [Dependency] = [], prebuildScripts: [BuildScript] = [], postbuildScripts: [BuildScript] = [], scheme: TargetScheme? = nil) {
+    public init(name: String, type: PBXProductType, platform: Platform, settings: Settings = .empty, configFiles: [String: String] = [:], sources: [TargetSource] = [], dependencies: [Dependency] = [], prebuildScripts: [BuildScript] = [], postbuildScripts: [BuildScript] = [], scheme: TargetScheme? = nil, buildToolPath: String? = nil, buildArgumentsString: String? = nil, passBuildSettingsInEnvironment: Bool = false, buildWorkingDirectory: String? = nil) {
         self.name = name
         self.type = type
         self.platform = platform
@@ -33,6 +38,10 @@ public struct Target {
         self.prebuildScripts = prebuildScripts
         self.postbuildScripts = postbuildScripts
         self.scheme = scheme
+        self.buildToolPath = buildToolPath
+        self.buildArgumentsString = buildArgumentsString
+        self.passBuildSettingsInEnvironment = passBuildSettingsInEnvironment
+        self.buildWorkingDirectory = buildWorkingDirectory
     }
 }
 
@@ -122,7 +131,11 @@ extension Target: Equatable {
             lhs.dependencies == rhs.dependencies &&
             lhs.prebuildScripts == rhs.prebuildScripts &&
             lhs.postbuildScripts == rhs.postbuildScripts &&
-            lhs.scheme == rhs.scheme
+            lhs.scheme == rhs.scheme &&
+            lhs.buildToolPath == rhs.buildToolPath &&
+            lhs.buildArgumentsString == rhs.buildArgumentsString &&
+            lhs.passBuildSettingsInEnvironment == rhs.passBuildSettingsInEnvironment &&
+            lhs.buildWorkingDirectory == rhs.buildWorkingDirectory
     }
 }
 
@@ -196,5 +209,17 @@ extension Target: NamedJSONDictionaryConvertible {
         prebuildScripts = jsonDictionary.json(atKeyPath: "prebuildScripts") ?? []
         postbuildScripts = jsonDictionary.json(atKeyPath: "postbuildScripts") ?? []
         scheme = jsonDictionary.json(atKeyPath: "scheme")
+        
+        buildToolPath = jsonDictionary.json(atKeyPath: "buildToolPath")
+        buildArgumentsString = jsonDictionary.json(atKeyPath: "buildArgumentsString")
+        passBuildSettingsInEnvironment = jsonDictionary.json(atKeyPath: "passBuildSettingsInEnvironment") ?? false
+        buildWorkingDirectory = jsonDictionary.json(atKeyPath: "buildWorkingDirectory")
+
+    }
+}
+
+extension PBXProductType {
+    public var isLegacy: Bool {
+        return self == .none
     }
 }

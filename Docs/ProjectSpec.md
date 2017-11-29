@@ -141,10 +141,17 @@ Settings are merged in the following order: groups, base, configs.
 - ⚪️ **postbuildScripts**: [[Build Script](#build-script)] - Build scripts that run *after* any other build phases
 - ⚪️ **dependencies**: [[Dependency](#dependency)] - Dependencies for the target
 - ⚪️ **scheme**: [Target Scheme](#target-scheme) - Generated scheme with tests or config variants
+- ⚪️ **buildToolPath**: String - Required when type is ""; Path to the build tool used in the legacy target.
+- ⚪️ **buildArgumentsString**: String - Only used when type is ""; Build arguments used for the build tool in the legacy target
+- ⚪️ **passBuildSettingsInEnvironment**: Bool - Only used when type is ""; Whether or not to pass build settings down to the build tool in the legacy target.
+- ⚪️ **buildWorkingDirectory**: String - Only used when type is ""; The working directory under which the build tool will be invoked in the legacy target.
+
+When the **type** is `""`, you are opting in to an Xcode "Legacy Target". This is the "External Build Tool" from the Xcode GUI. The bottom options only apply in this mode.
 
 ### Product Type
 This will provide default build settings for a certain product type. It can be any of the following:
 
+- ""
 - application
 - framework
 - library.dynamic
@@ -163,6 +170,8 @@ This will provide default build settings for a certain product type. It can be a
 - app-extension.messages
 - app-extension.messages-sticker-pack
 - xpc-service
+
+Note: Passing "" for the product type implies you want a LegacyTarget
 
 ### Platform
 This will provide default build settings for a certain platform. It can be any of the following:
