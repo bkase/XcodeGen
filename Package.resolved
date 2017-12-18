@@ -75,10 +75,10 @@
       },
       {
         "package": "xcproj",
-        "repositoryURL": "https://github.com/bkase/xcproj.git",
+        "repositoryURL": "https://github.com/kastiglione/xcproj.git",
         "state": {
           "branch": null,
-          "revision": "e90f7f8db549af6cc4845afa3161d4d10b74922a",
+          "revision": "fef46b186b7c6ccf43c80d3a6dfa83115fccfcc2",
           "version": null
         }
       }
